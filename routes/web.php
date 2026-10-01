@@ -18,9 +18,9 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/bookings', function () {
-    return Inertia::render('Bookings/Index');
-})->middleware(['auth', 'verified'])->name('bookings.index');
+Route::get('/booking', function () {
+    return Inertia::render('Booking/Index');
+})->middleware(['auth', 'verified'])->name('booking.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
