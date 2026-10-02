@@ -28,4 +28,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::get('/coaches', function () {
+    return Inertia::render('Coach/Index');
+})->middleware(['auth', 'verified'])->name('coaches.index');
+
+Route::get('/coaches/create', function () {
+    return Inertia::render('Coach/Create');
+})->middleware(['auth', 'verified'])->name('coaches.create');
+
 require __DIR__.'/auth.php';
