@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ClassScheduleController;
 use App\Http\Controllers\Api\MembershipController;
+use App\Http\Controllers\Api\UserController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -34,4 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('bookings', BookingController::class);
     Route::patch('bookings/{booking}/cancel', [BookingController::class, 'cancel']);
+});
+
+Route::middleware(['auth:sanctum', 'role:developer,admin'])->group(function () {
+    Route::get('/users', [UserController::class, 'index']);
 });

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import type { Coach, PaginatedResponse } from '@/types';
 import useAuth from '@/hooks/useAuth';
+import { router } from '@inertiajs/react';
 
 export default function Index() {
   const [coaches, setCoaches] = useState<Coach[]>([]);
@@ -23,12 +24,21 @@ export default function Index() {
       });
   }, []);
 
-  if (isLoading || isAuthLoading) {
-    return <div>Loading...</div>;
-  }
-
   if (error) {
     return <div>{error}</div>;
+  }
+
+  async function handleDelete(coachId: number) {
+    if (!window.confirm('Yakin mau hapus coach ini?')) {
+      return;
+    }
+
+    try {
+      await api.delete(`/coaches/${coachId}`);
+      setCoaches((prev) => prev.filter((c) => c.id !== coachId));
+    } catch (err) {
+      alert('Gagal menghapus coach.');
+    }
   }
 
   const canManage = role === 'admin' || role === 'developer';
@@ -42,10 +52,18 @@ export default function Index() {
             {coach.name} — {coach.specialty} — {coach.phone ?? '-'}
             {canManage && (
               <>
-                <button type="button" style={{ marginLeft: 8 }}>
+                <button
+                  type="button"
+                  style={{ marginLeft: 8 }}
+                  onClick={() => router.visit(`/coaches/${coach.id}/edit`)}
+                >
                   Edit
                 </button>
-                <button type="button" style={{ marginLeft: 8 }}>
+                <button
+                  type="button"
+                  style={{ marginLeft: 8 }}
+                  onClick={() => handleDelete(coach.id)}
+                >
                   Delete
                 </button>
               </>
