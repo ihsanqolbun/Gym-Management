@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\MembershipPricing;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -11,7 +12,10 @@ class UserController extends Controller
 {
     public function index(): AnonymousResourceCollection
     {
-        $users = User::where('role', 'member')->orderBy('name')->get();
+        $users = User::where('role', 'member')
+            ->orderBy('name')
+            ->with('memberships')
+            ->get();
 
         return UserResource::collection($users);
     }

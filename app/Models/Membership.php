@@ -13,7 +13,10 @@ class Membership extends Model
     protected $fillable = [
         'user_id',
         'type',
+        'category',
+        'package',
         'price',
+        'register_fee',
         'payment_status',
         'start_date',
         'end_date',

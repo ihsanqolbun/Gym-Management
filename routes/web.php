@@ -70,4 +70,12 @@ Route::get('/memberships/{membership}/edit', function (\App\Models\Membership $m
     ]);
 })->middleware(['auth', 'verified'])->name('memberships.edit');
 
+Route::get('/private-sessions', function () {
+    return Inertia::render('PrivateSession/Index');
+})->middleware(['auth', 'verified'])->name('private-sessions.index');
+
+Route::get('/private-sessions/create', function () {
+    return Inertia::render('PrivateSession/Create');
+})->middleware(['auth', 'verified'])->name('private-sessions.create');
+
 require __DIR__.'/auth.php';

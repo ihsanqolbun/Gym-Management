@@ -50,7 +50,7 @@ export default function Index() {
   return (
     <div>
       <h1>Daftar Membership</h1>
-      {canManage && (
+      {(canManage || role === 'member') && (
         <button type="button" onClick={() => router.visit('/memberships/create')}>
           Tambah Membership
         </button>
@@ -58,8 +58,8 @@ export default function Index() {
       <ul>
         {memberships.map((membership) => (
           <li key={membership.id}>
-            {membership.user?.name ?? 'Unknown'} — {membership.type} — Rp{' '}
-            {membership.price} — {membership.payment_status} — {membership.start_date} s/d{' '}
+            {membership.user?.name ?? 'Unknown'} — {membership.category ?? membership.type} — {membership.package ?? '-'} — Rp{' '}
+            {membership.price} — Rp {membership.register_fee} — {membership.payment_status} — {membership.start_date} s/d{' '}
             {membership.end_date} — {membership.status}
             {canManage && (
               <>

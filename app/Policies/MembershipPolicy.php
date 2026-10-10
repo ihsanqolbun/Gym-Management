@@ -23,7 +23,7 @@ class MembershipPolicy
 
     public function create(User $user): bool
     {
-        return in_array($user->role, ['developer', 'admin']);
+        return in_array($user->role, ['developer', 'admin', 'member']);
     }
 
     public function update(User $user, Membership $membership): bool

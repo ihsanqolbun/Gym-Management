@@ -7,8 +7,13 @@ use App\Http\Requests\StoreMembershipRequest;
 use App\Http\Requests\UpdateMembershipRequest;
 use App\Http\Resources\MembershipResource;
 use App\Models\Membership;
+use App\Models\User;
+use App\Services\MembershipPricing;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 class MembershipController extends Controller
 {
@@ -34,11 +39,59 @@ class MembershipController extends Controller
         return new MembershipResource($membership->load('user'));
     }
 
-    public function store(StoreMembershipRequest $request): MembershipResource
+    public function store(StoreMembershipRequest $request, MembershipPricing $pricing): MembershipResource
     {
         $this->authorize('create', Membership::class);
 
-        $membership = Membership::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->user()->role === 'member') {
+            $today = now('Asia/Jakarta');
+
+            $data['user_id'] = $request->user()->id;
+            $data['start_date'] = $today->toDateString();
+            $data['end_date'] = $data['package'] === 'visit_1x'
+                ? $today->copy()->addDay()->toDateString()
+                : $today->copy()->addMonth()->toDateString();
+            $data['payment_status'] = 'pending';
+            $data['status'] = 'active';
+        }
+
+        $member = User::findOrFail($data['user_id']);
+
+        if (! $member->date_of_birth) {
+            throw ValidationException::withMessages([
+                'user_id' => 'Member ini belum punya tanggal lahir.',
+            ]);
+        }
+
+        try {
+            $result = $pricing->resolve(
+                $member->date_of_birth,
+                Carbon::parse($data['start_date']),
+                $data['package'],
+                $data['private_category'] ?? null,
+            );
+        } catch (InvalidArgumentException $e) {
+            throw ValidationException::withMessages([
+                'package' => $e->getMessage(),
+            ]);
+        }
+
+        $isFirstMembership = ! Membership::where('user_id', $data['user_id'])->exists();
+        
+        $membership = Membership::create([
+            'user_id' => $data['user_id'],
+            'type' => $data['package'] === 'visit_1x' ? 'harian' : 'bulanan',
+            'category' => $result['category'],
+            'package' => $data['package'],
+            'price' => $result['price'],
+            'register_fee' => $isFirstMembership ? config('pricelist.register_fee') : 0,
+            'payment_status' => $data['payment_status'],
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'],
+            'status' => $data['status'],
+        ]);
 
         return new MembershipResource($membership->load('user'));
     }

@@ -13,14 +13,12 @@ class UpdateMembershipRequest extends FormRequest
 
     public function rules(): array
     {
+        $startDate = $this->route('membership')->start_date->toDateString();
+    
         return [
-            'user_id' => 'sometimes|required|exists:users,id',
-            'type' => 'sometimes|required|in:harian,mingguan,bulanan',
-            'price' => 'sometimes|required|numeric|min:0',
             'payment_status' => 'sometimes|required|in:pending,paid',
-            'start_date' => 'sometimes|required|date',
-            'end_date' => 'sometimes|required|date|after:start_date',
             'status' => 'sometimes|required|in:active,expired',
+            'end_date' => "sometimes|required|date|after:{$startDate}",
         ];
     }
 }

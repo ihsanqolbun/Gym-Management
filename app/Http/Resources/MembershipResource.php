@@ -12,7 +12,10 @@ class MembershipResource extends JsonResource
         return [
             'id' => $this->id,
             'type' => $this->type,
+            'category' => $this->category,
+            'package' => $this->package,
             'price' => $this->price,
+            'register_fee' => $this->register_fee,
             'payment_status' => $this->payment_status,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,

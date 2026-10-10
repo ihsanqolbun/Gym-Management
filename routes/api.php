@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ClassScheduleController;
 use App\Http\Controllers\Api\MembershipController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\PrivateSessionController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -39,4 +40,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware(['auth:sanctum', 'role:developer,admin'])->group(function () {
     Route::get('/users', [UserController::class, 'index']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('private-sessions', PrivateSessionController::class);
+    Route::patch('private-sessions/{private_session}/cancel', [PrivateSessionController::class, 'cancel']);
 });

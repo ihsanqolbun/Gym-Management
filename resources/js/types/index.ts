@@ -51,7 +51,10 @@ export interface ClassSchedule {
 export interface Membership {
   id: number;
   type: 'harian' | 'mingguan' | 'bulanan';
+  category: 'pelajar' | 'reguler' | 'dewasa' | 'private_siang' | 'private_malam' | null;
+  package: 'visit_1x' | 'visit_10x' | 'all_day_month' | null;
   price: string;
+  register_fee: number;
   payment_status: 'pending' | 'paid';
   start_date: string;
   end_date: string;
@@ -67,4 +70,18 @@ export interface Booking {
   notes: string | null;
   user: User | null;
   class_schedule: ClassSchedule | null;
+}
+
+export interface PrivateSession {
+  id: number;
+  session_date: string;
+  start_time: string;
+  time_slot: 'private_siang' | 'private_malam';
+  location_type: 'gym' | 'rumah';
+  address: string | null;
+  price: number;
+  status: 'requested' | 'approved' | 'rejected' | 'cancelled';
+  admin_note: string | null;
+  user: User | null;
+  coach: Coach | null;
 }
