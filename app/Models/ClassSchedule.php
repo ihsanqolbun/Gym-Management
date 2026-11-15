@@ -47,7 +47,7 @@ class ClassSchedule extends Model
     public function availableSlots(string $date): int
     {
         $booked = $this->bookings()
-            ->where('booking_date', $date)
+            ->whereDate('booking_date', $date)
             ->where('status', 'booked')
             ->count();
 
