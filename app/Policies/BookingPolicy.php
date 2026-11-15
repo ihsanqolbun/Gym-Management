@@ -49,6 +49,11 @@ class BookingPolicy
         return false;
     }
 
+    public function checkIn(User $user, Booking $booking): bool
+    {
+        return $user->role === 'developer' || $user->role === 'admin';
+    }
+    
     protected function isWithinCancellationWindow(Booking $booking): bool
     {
         return $booking->isWithinCancellationWindow();

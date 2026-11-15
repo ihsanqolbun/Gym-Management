@@ -72,6 +72,33 @@ class BookingController extends Controller
         return response()->json(null, 204);
     }
 
+    public function checkIn(Booking $booking): JsonResponse|BookingResource
+    {
+        $this->authorize('checkIn', $booking);
+    
+        if ($booking->status !== 'booked') {
+            return response()->json([
+                'message' => 'Check-in failed. Only bookings with status booked can be checked in.',
+            ], 422);
+        }
+    
+        // App timezone UTC, gym di WIB: "hari ini" harus dihitung pakai WIB
+        $today = now('Asia/Jakarta')->toDateString();
+    
+        if ($booking->booking_date->toDateString() !== $today) {
+            return response()->json([
+                'message' => 'Check-in failed. Check-in is only allowed on the booking date.',
+            ], 422);
+        }
+    
+        $booking->update([
+            'status' => 'attended',
+            'checked_in_at' => now(),
+        ]);
+    
+        return new BookingResource($booking->load(['user', 'classSchedule.coach']));
+    }
+
     public function cancel(Booking $booking): JsonResponse|BookingResource
     {
         if (auth()->user()->role === 'member' && $booking->user_id === auth()->id() && ! $booking->isWithinCancellationWindow()) {

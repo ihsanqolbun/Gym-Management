@@ -10,12 +10,13 @@ use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use App\Models\PrivateSession;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Akun khusus (bukan random) — role penting, harus predictable
+        // 1. Akun tetap per role (predictable, password: "password")
         User::firstOrCreate(
             ['email' => 'developer@gym.test'],
             [
@@ -25,62 +26,78 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $owner = User::factory()->create([
+        User::factory()->create([
             'name' => 'Owner Gym',
             'email' => 'owner@gym.test',
             'password' => Hash::make('password'),
             'role' => 'owner',
         ]);
 
-        $admin = User::factory()->create([
+        User::factory()->create([
             'name' => 'Admin Gym',
             'email' => 'admin@gym.test',
             'password' => Hash::make('password'),
             'role' => 'admin',
         ]);
 
-        // 2. Coaches — dibuat duluan karena ClassSchedule butuh ini
+        $demoMember = User::factory()->create([
+            'name' => 'Demo Member',
+            'email' => 'member@gym.test',
+            'password' => Hash::make('password'),
+            'role' => 'member',
+            'date_of_birth' => '1998-05-20',
+        ]);
+
+        // 2. Coaches dulu, karena ClassSchedule butuh coach
         $coaches = Coach::factory()->count(10)->create();
 
-        // 3. Class Schedules — di-"recycle" ke coach yang udah ada,
-        //    bukan bikin coach baru tiap row
+        // 3. Class schedules, di-recycle ke coach yang sudah ada
         $schedules = ClassSchedule::factory()
             ->count(20)
             ->recycle($coaches)
             ->create();
 
-        // 4. Members (role default sudah 'member' dari UserFactory)
+        // 4. Member random, demo member ikut masuk pool
         $members = User::factory()->count(40)->create();
+        $members->push($demoMember);
 
-        // 5. Memberships — gak semua member punya, ~30 dari 40 aja
-        //    (biar ada juga data member yang "belum daftar membership")
+        // 5. Membership demo member dibuat duluan (jadi membership pertama,
+        //    jadi kena register fee), lalu sisanya random
+        Membership::factory()->create([
+            'user_id' => $demoMember->id,
+            'package' => 'all_day_month',
+            'start_date' => now('Asia/Jakarta')->subDays(5)->toDateString(),
+            'payment_status' => 'paid',
+        ]);
+
         Membership::factory()
             ->count(30)
             ->recycle($members)
             ->create();
 
-        // 6. Bookings — kombinasi random member + schedule.
-        //    Pakai try/catch karena ada unique constraint
-        //    (user_id, class_schedule_id, booking_date) yang bisa collision.
-        $bookingTarget = 60;
+        // 6. Booking random. try/catch karena kombinasi (user, jadwal, tanggal)
+        //    bisa kena unique constraint, itu konsekuensi data random.
+        $this->createBookings(60, fn () => Booking::factory()->recycle($members)->recycle($schedules));
+
+        // 7. Booking demo member (3 buah)
+        $this->createBookings(3, fn () => Booking::factory()->recycle($schedules), ['user_id' => $demoMember->id]);
+        // 8. Private session: random + 2 buat demo member
+            PrivateSession::factory()->count(10)->recycle($members)->create();
+            PrivateSession::factory()->count(2)->create(['user_id' => $demoMember->id]);
+        }
+
+    private function createBookings(int $target, \Closure $makeFactory, array $overrides = []): void
+    {
         $created = 0;
         $attempts = 0;
 
-        while ($created < $bookingTarget && $attempts < $bookingTarget * 3) {
+        while ($created < $target && $attempts < $target * 5) {
             $attempts++;
 
             try {
-                Booking::factory()
-                    ->recycle($members)
-                    ->recycle($schedules)
-                    ->create();
-
+                $makeFactory()->create($overrides);
                 $created++;
             } catch (QueryException $e) {
-                // Kena unique constraint (kombinasi user+schedule+tanggal
-                // udah pernah ada) — skip aja, coba kombinasi lain di
-                // iterasi berikutnya. Ini bukan bug, memang konsekuensi
-                // dari data yang di-random.
                 continue;
             }
         }

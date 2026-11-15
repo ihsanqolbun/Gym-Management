@@ -36,6 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('bookings', BookingController::class);
     Route::patch('bookings/{booking}/cancel', [BookingController::class, 'cancel']);
+    Route::patch('bookings/{booking}/check-in', [BookingController::class, 'checkIn']);
 });
 
 Route::middleware(['auth:sanctum', 'role:developer,admin'])->group(function () {
