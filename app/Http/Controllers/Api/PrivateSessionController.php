@@ -79,9 +79,16 @@ class PrivateSessionController extends Controller
         return new PrivateSessionResource($privateSession->load(['user', 'coach']));
     }
 
-    public function cancel(PrivateSession $privateSession): PrivateSessionResource
+    public function cancel(Request $request, PrivateSession $privateSession): JsonResponse|PrivateSessionResource
     {
         $this->authorize('cancel', $privateSession);
+
+        if ($request->user()->role === 'member' && ! $privateSession->isWithinCancellationWindow()) {
+            return response()->json([
+                'message' => 'Cancellation failed. Member can only cancel at least '
+                    .PrivateSession::CANCELLATION_WINDOW_HOURS.' hours before the session starts.',
+            ], 422);
+        }
 
         $privateSession->update(['status' => 'cancelled']);
 

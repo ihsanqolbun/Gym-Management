@@ -48,7 +48,7 @@ class ClassSchedule extends Model
     {
         $booked = $this->bookings()
             ->whereDate('booking_date', $date)
-            ->where('status', 'booked')
+            ->whereIn('status', ['booked', 'attended'])
             ->count();
 
         return max(0, $this->capacity - $booked);

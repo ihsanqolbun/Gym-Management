@@ -136,6 +136,28 @@ class BookingStoreTest extends TestCase
         ])->assertUnprocessable()->assertJsonValidationErrors('class_schedule_id');
     }
 
+    public function test_attended_booking_still_counts_toward_capacity(): void
+    {
+        $first = $this->makeUser('member', 'm1@test.com');
+        $second = $this->makeUser('member', 'm2@test.com');
+        $schedule = $this->makeSchedule(['capacity' => 1]);
+    
+        // Sudah check-in (attended), tetap harus makan slot
+        Booking::create([
+            'user_id' => $first->id,
+            'class_schedule_id' => $schedule->id,
+            'booking_date' => $this->nextMonday(),
+            'status' => 'attended',
+        ]);
+    
+        Sanctum::actingAs($second);
+    
+        $this->postJson('/api/bookings', [
+            'class_schedule_id' => $schedule->id,
+            'booking_date' => $this->nextMonday(),
+        ])->assertUnprocessable()->assertJsonValidationErrors('class_schedule_id');
+    }
+    
     public function test_admin_must_provide_user_id(): void
     {
         Sanctum::actingAs($this->makeUser('admin', 'a@test.com'));
