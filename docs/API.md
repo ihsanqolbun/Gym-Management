@@ -118,7 +118,7 @@ Rule failures from custom actions (cancel, check-in) return `{"message": "..."}`
 - One booking per user, class and date (cancelled bookings also count).
 - The class must have free capacity on that date. `booked` and `attended` bookings take a slot; `cancelled` ones do not.
 
-**PUT/PATCH /bookings/{id}** (admin/developer): optional `class_schedule_id`, `booking_date`, `status`, `notes` (max 255).
+**PUT/PATCH /bookings/{id}** (admin/developer): only `notes` can be changed (string, nullable, max 255). Other fields (`status`, `booking_date`, `class_schedule_id`) are ignored, not rejected: the request returns 200 and those fields stay unchanged. Status changes go through `/cancel` and `/check-in`. To move a booking to another class or date, cancel it and create a new one.
 
 **PATCH /bookings/{id}/cancel**: sets `status` to `cancelled`. Member outside the 4-hour window gets 422: `Cancellation failed. Member can only cancel at least 4 hours before class start time.`
 
@@ -132,9 +132,9 @@ Rule failures from custom actions (cancel, check-in) return `{"message": "..."}`
 |--------|------|-----|
 | GET | `/memberships` | Staff see all; members see their own. Paginated. |
 | POST | `/memberships` | Member self-register, or staff on behalf of a member |
-| GET | `/memberships/{id}` | Staff; member own (policy) (unverified) |
-| PUT/PATCH | `/memberships/{id}` | developer, admin (policy) (unverified) |
-| DELETE | `/memberships/{id}` | developer, admin (policy) (unverified) |
+| GET | `/memberships/{id}` | Staff; member own (policy) |
+| PUT/PATCH | `/memberships/{id}` | developer, admin (policy) |
+| DELETE | `/memberships/{id}` | developer, admin (policy) |
 
 **Membership object**
 
@@ -227,9 +227,9 @@ The server derives `time_slot` and `price` from `start_time` and sets `status: r
 | PUT/PATCH | `/class-schedules/{id}` | developer, admin |
 | DELETE | `/class-schedules/{id}` | developer, admin |
 
-Object: same as the `class_schedule` object inside a booking. Pagination of the list is (unverified).
+Object: same as the `class_schedule` object inside a booking. The list is paginated (10 per page).
 
-**POST body:** `class_name` (required), `level` (`beginner`|`intermediate`|`advanced`), `day_of_week` (`senin`...`minggu`), `start_time` (`HH:MM`), `end_time` (after start), `capacity` (integer, at least 1), optional `coach_id`, `location`, `is_active`. PUT/PATCH accepts the same fields, all optional.
+**POST body:** `class_name` (required), `level` (`beginner`|`intermediate`|`advanced`), `day_of_week` (`senin`...`minggu`), `start_time` (`HH:MM`), `end_time` (after start), `capacity` (integer, at least 1), optional `coach_id`, `location`, `is_active`. PUT/PATCH accepts the same fields, all optional, except that `end_time` is validated against `start_time` in the same request, so send both together when changing times.
 
 ---
 
@@ -244,13 +244,15 @@ Coaches are profile records only; they do not log in.
 | PUT/PATCH | `/coaches/{id}` | developer, admin |
 | DELETE | `/coaches/{id}` | developer, admin |
 
-Object: `id`, `name`, `email`, `specialty`, `phone`, `created_at`. Writable fields: `name`, `email`, `specialty`, `phone`. Validation rules are (unverified).
+The list is paginated (10 per page).
+
+Object: `id`, `name`, `email`, `specialty`, `phone`, `created_at`. Writable fields: `name`, `email`, `specialty`, `phone`. Validation: `name` required (max 255); `email` nullable, valid email (max 255); `specialty` nullable (max 255); `phone` nullable (max 20). On PUT/PATCH, all fields are optional.
 
 ---
 
 ## Users
 
-`GET /users`: list of members for dropdowns (developer, admin only). Response format is (unverified).
+`GET /users`: all users with role `member`, ordered by name, for dropdowns (developer, admin only). Not paginated: the response is `{ "data": [ ... ] }`. Each item has `id`, `name`, `email`, `role`, `phone` (the same shape as the `user` object inside a booking).
 
 ---
 

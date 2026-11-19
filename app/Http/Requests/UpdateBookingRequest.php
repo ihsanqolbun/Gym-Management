@@ -14,10 +14,8 @@ class UpdateBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'class_schedule_id' => 'sometimes|nullable|exists:class_schedules,id',
-            'booking_date' => 'sometimes|nullable|date|after_or_equal:today',
-            'status' => 'sometimes|nullable|in:booked,cancelled,attended',
-            'notes' => 'nullable|string|max:255',
+            // Status hanya lewat /cancel dan /check-in, jadwal/tanggal lewat booking baru
+            'notes' => 'sometimes|nullable|string|max:255',
         ];
     }
 }
