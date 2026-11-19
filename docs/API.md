@@ -120,7 +120,7 @@ Rule failures from custom actions (cancel, check-in) return `{"message": "..."}`
 
 **PUT/PATCH /bookings/{id}** (admin/developer): only `notes` can be changed (string, nullable, max 255). Other fields (`status`, `booking_date`, `class_schedule_id`) are ignored, not rejected: the request returns 200 and those fields stay unchanged. Status changes go through `/cancel` and `/check-in`. To move a booking to another class or date, cancel it and create a new one.
 
-**PATCH /bookings/{id}/cancel**: sets `status` to `cancelled`. Member outside the 4-hour window gets 422: `Cancellation failed. Member can only cancel at least 4 hours before class start time.`
+**PATCH /bookings/{id}/cancel**: sets `status` to `cancelled`. Member outside the 4-hour window gets 422: `Cancellation failed. Member can only cancel at least 4 hours before class start time.` Cancellation is final: the same user cannot book the same class on the same date again (422 on `booking_date`), because cancelled bookings still count toward the one-booking-per-user-class-date rule. To restore it, contact an admin.
 
 **PATCH /bookings/{id}/check-in**: no body. Sets `status` to `attended` and fills `checked_in_at`. 422 if the status is not `booked`, or the booking date is not today (WIB).
 
