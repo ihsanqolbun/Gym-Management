@@ -70,11 +70,19 @@ class PrivateSessionController extends Controller
         return new PrivateSessionResource($session->load(['user', 'coach']));
     }
 
-    public function update(UpdatePrivateSessionRequest $request, PrivateSession $privateSession): PrivateSessionResource
+    public function update(UpdatePrivateSessionRequest $request, PrivateSession $privateSession): JsonResponse|PrivateSessionResource
     {
         $this->authorize('update', $privateSession);
 
-        $privateSession->update($request->validated());
+        $data = $request->validated();
+
+        if (array_key_exists('status', $data) && $privateSession->status !== 'requested') {
+            return response()->json([
+                'message' => 'Update failed. Only sessions with status requested can be approved or rejected.',
+            ], 422);
+        }
+
+        $privateSession->update($data);
 
         return new PrivateSessionResource($privateSession->load(['user', 'coach']));
     }

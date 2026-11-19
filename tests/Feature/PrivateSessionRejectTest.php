@@ -76,4 +76,59 @@ class PrivateSessionRejectTest extends TestCase
             'status' => 'requested',
         ]);
     }
+
+    public function test_cancelled_session_cannot_be_approved(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $session = $this->makeRequestedSession();
+        $session->update(['status' => 'cancelled']);
+
+        Sanctum::actingAs($admin);
+
+        $this->patchJson("/api/private-sessions/{$session->id}", [
+            'status' => 'approved',
+        ])->assertStatus(422);
+
+        $this->assertDatabaseHas('private_sessions', [
+            'id' => $session->id,
+            'status' => 'cancelled',
+        ]);
+    }
+
+    public function test_approved_session_cannot_be_rejected(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $session = $this->makeRequestedSession();
+        $session->update(['status' => 'approved']);
+
+        Sanctum::actingAs($admin);
+
+        $this->patchJson("/api/private-sessions/{$session->id}", [
+            'status' => 'rejected',
+        ])->assertStatus(422);
+
+        $this->assertDatabaseHas('private_sessions', [
+            'id' => $session->id,
+            'status' => 'approved',
+        ]);
+    }
+
+    public function test_admin_can_still_change_note_on_approved_session(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $session = $this->makeRequestedSession();
+        $session->update(['status' => 'approved']);
+
+        Sanctum::actingAs($admin);
+
+        $this->patchJson("/api/private-sessions/{$session->id}", [
+            'admin_note' => 'Coach diganti.',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('private_sessions', [
+            'id' => $session->id,
+            'status' => 'approved',
+            'admin_note' => 'Coach diganti.',
+        ]);
+    }
 }

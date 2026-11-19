@@ -212,7 +212,7 @@ Pricing is always computed on the server:
 
 The server derives `time_slot` and `price` from `start_time` and sets `status: requested`. Rules (422 on `start_time`): start at or after 06:00, fixed 180-minute duration, end no later than 20:00. Slot `private_siang` starts between 11:00 and 17:00; any other valid start is `private_malam`.
 
-**PUT/PATCH /private-sessions/{id}** (admin/developer): `status` (`approved`|`rejected`), `coach_id`, `admin_note` (max 255).
+**PUT/PATCH /private-sessions/{id}** (admin/developer): `status` (`approved`|`rejected`), `coach_id`, `admin_note` (max 255). Changing `status` is only allowed while the session is `requested`; otherwise 422: `Update failed. Only sessions with status requested can be approved or rejected.` `coach_id` and `admin_note` can still be changed in any status.
 
 **PATCH /private-sessions/{id}/cancel:** member outside the window gets 422: `Cancellation failed. Member can only cancel at least 4 hours before the session starts.` Past sessions are always outside the window.
 
