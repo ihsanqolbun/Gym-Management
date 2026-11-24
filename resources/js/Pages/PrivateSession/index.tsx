@@ -4,6 +4,14 @@ import api from '@/lib/api';
 import type { PrivateSession, PaginatedResponse } from '@/types';
 import useAuth from '@/hooks/useAuth';
 
+const CANCELLATION_WINDOW_HOURS = 4; // BARU
+
+// BARU: hitung dari WIB (+07:00), sama kayak aturan backend
+function isWithinCancellationWindow(s: PrivateSession): boolean {
+  const start = new Date(`${s.session_date.slice(0, 10)}T${s.start_time.slice(0, 5)}:00+07:00`);
+  return start.getTime() - Date.now() >= CANCELLATION_WINDOW_HOURS * 60 * 60 * 1000;
+}
+
 export default function Index() {
   const [sessions, setSessions] = useState<PrivateSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,9 +83,12 @@ export default function Index() {
       )}
       <ul>
         {sessions.map((s) => {
-          const canCancel =
+            const canCancel =
             s.status === 'requested' || s.status === 'approved'
-              ? canManage || (role === 'member' && s.user?.id === user?.id)
+              ? canManage ||
+                (role === 'member' &&
+                  s.user?.id === user?.id &&
+                  isWithinCancellationWindow(s)) // BERUBAH: member harus masih di dalam jendela 4 jam
               : false;
 
           return (

@@ -2,15 +2,21 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
+import type { PageProps } from '@/types'; // BARU
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
+import type { FormEventHandler } from 'react'; // BARU
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
     status,
     className = '',
-}) {
-    const user = usePage().props.auth.user;
+}: {
+    mustVerifyEmail: boolean;
+    status?: string;
+    className?: string;
+}) { // BERUBAH
+    const user = usePage<PageProps>().props.auth.user; // BERUBAH
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
         useForm({
@@ -18,9 +24,9 @@ export default function UpdateProfileInformation({
             email: user.email,
         });
 
-    const submit = (e) => {
+    const submit: FormEventHandler = (e) => {
         e.preventDefault();
-
+    
         patch(route('profile.update'));
     };
 

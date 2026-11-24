@@ -24,6 +24,7 @@ export interface User {
   email: string;
   role: 'developer' | 'owner' | 'admin' | 'member';
   phone: string | null;
+  email_verified_at?: string | null;
 }
 
 export interface Coach {
@@ -85,3 +86,8 @@ export interface PrivateSession {
   user: User | null;
   coach: Coach | null;
 }
+
+// props yang dibagi Inertia ke semua halaman
+export type PageProps = {
+  auth: { user: User };
+};

@@ -4,6 +4,15 @@ import {
     Transition,
     TransitionChild,
 } from '@headlessui/react';
+import type { PropsWithChildren } from 'react';
+
+
+type ModalProps = PropsWithChildren<{
+    show?: boolean;
+    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+    closeable?: boolean;
+    onClose?: () => void;
+}>;
 
 export default function Modal({
     children,
@@ -11,12 +20,7 @@ export default function Modal({
     maxWidth = '2xl',
     closeable = true,
     onClose = () => {},
-}) {
-    const close = () => {
-        if (closeable) {
-            onClose();
-        }
-    };
+}: ModalProps) {
 
     const maxWidthClass = {
         sm: 'sm:max-w-sm',

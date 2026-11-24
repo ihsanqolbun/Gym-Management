@@ -1,6 +1,14 @@
+import type { User } from '@/types'; // BARU
 import { Head, Link } from '@inertiajs/react';
 
-export default function Welcome({ auth, laravelVersion, phpVersion }) {
+// di halaman publik, user bisa null (belum login)
+type WelcomeProps = {
+    auth: { user: User | null };
+    laravelVersion: string;
+    phpVersion: string;
+};
+
+export default function Welcome({ auth, laravelVersion, phpVersion }: WelcomeProps) { 
     const handleImageError = () => {
         document
             .getElementById('screenshot-container')
