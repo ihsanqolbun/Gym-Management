@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\MembershipController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\PrivateSessionController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\PublicController;
+use Illuminate\Http\JsonResponse;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -51,4 +53,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
+});
+
+// endpoint publik, sengaja tanpa auth
+Route::prefix('public')->group(function () {
+    Route::get('/class-schedules', [PublicController::class, 'classSchedules']);
+});
+
+Route::prefix('public')->group(function () {
+    Route::get('/class-schedules', [PublicController::class, 'classSchedules']);
+    Route::get('/pricelist', [PublicController::class, 'pricelist']); // BARU
 });

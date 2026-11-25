@@ -256,6 +256,55 @@ Object: `id`, `name`, `email`, `specialty`, `phone`, `created_at`. Writable fiel
 
 ---
 
+## Public endpoints
+
+No login required. These are read-only and return only data meant for visitors (landing page). Nothing here needs the `X-XSRF-TOKEN` header, since they are GET requests.
+
+| Method | Path | Who |
+|--------|------|-----|
+| GET | `/public/class-schedules` | Anyone |
+| GET | `/public/pricelist` | Anyone |
+
+**GET /public/class-schedules**: active class schedules only, ordered by `start_time`. Not paginated.
+
+```json
+{
+  "data": [
+    {
+      "id": 3,
+      "class_name": "Muay Thai Basic",
+      "level": "beginner",
+      "day_of_week": "senin",
+      "start_time": "18:00",
+      "end_time": "19:00",
+      "location": "Main Ring",
+      "coach_name": "Coach A"
+    }
+  ]
+}
+```
+
+`coach_name` is `null` when the schedule has no coach. Capacity, `is_active`, and coach contact details are intentionally not exposed.
+
+**GET /public/pricelist**: registration fee and prices in IDR (integers), keyed by category, then package.
+
+```json
+{
+  "data": {
+    "register_fee": 75000,
+    "prices": {
+      "pelajar": { "visit_1x": 15000, "visit_10x": 135000, "all_day_month": 250000 },
+      "reguler": { "visit_1x": 20000, "visit_10x": 185000, "all_day_month": 300000 },
+      "dewasa": { "visit_1x": 35000, "visit_10x": 335000, "all_day_month": 450000 },
+      "private_siang": { "visit_1x": 100000, "visit_10x": 950000 },
+      "private_malam": { "visit_1x": 125000, "visit_10x": 1200000 }
+    }
+  }
+}
+```
+
+The values come from `config/pricelist.php`, the same source the server uses to calculate membership prices, so they cannot drift apart.
+
 ## Dashboard
 
 `GET /dashboard`: any logged-in role. The response depends on the role. "Today" is computed in WIB.
